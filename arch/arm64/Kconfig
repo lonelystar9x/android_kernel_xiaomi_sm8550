@@ -2218,6 +2218,10 @@ if CRYPTO
 source "arch/arm64/crypto/Kconfig"
 endif
 
+config TARGET_REQUIRE_XIAOMI_DRIVER
+	bool "include xiaomi camera driver for device that doesnt use csiphy"
+	default n
+
 config TARGET_PRODUCT_FUXI
 	bool "Target product is fuxi"
 	default n
