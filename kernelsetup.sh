@@ -12,7 +12,7 @@ echo "--- Running script from: $SCRIPT_DIR"
 KSU_NEXT_DIR="$SCRIPT_DIR/KernelSU-Next"
 KERNEL_DIR="$SCRIPT_DIR"
 PATCH_FILE="$SCRIPT_DIR/patches/latest_ksu.patch"
-SUSFS_PATCH_FILE="$SCRIPT_DIR/patches/susfs_1.5.9_patch.patch"
+SUSFS_PATCH_FILE="$SCRIPT_DIR/patches/susfs_1.5.12_kernel.patch"
 
 
 # --- Function to patch the local kernel with susfs ---
