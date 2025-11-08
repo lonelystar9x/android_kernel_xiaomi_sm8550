@@ -1,14 +1,13 @@
-From 8f8136281b25479995ab3d135ca3350f8822ccc3 Mon Sep 17 00:00:00 2001
+From d6f0db949c256a31384afcf48194ecbcbbc0eaf5 Mon Sep 17 00:00:00 2001
 From: TheMysticle <36317711+TheMysticle@users.noreply.github.com>
-Date: Fri, 7 Nov 2025 14:53:58 +0100
-Subject: [PATCH] apply susfs
+Date: Sat, 8 Nov 2025 18:04:42 +0100
+Subject: [PATCH] latest_ksu
 
 ---
  kernel/Kconfig           | 138 ++++++++++++
  kernel/Makefile          |  77 +++++++
  kernel/allowlist.c       |   8 +-
  kernel/core_hook.c       | 447 ++++++++++++++++++++++++++++++++++++++-
- kernel/kernel            |   1 +
  kernel/kernel_compat.c   |  19 +-
  kernel/kernel_compat.h   |   1 +
  kernel/ksu.c             |  14 +-
@@ -17,11 +16,10 @@ Subject: [PATCH] apply susfs
  kernel/selinux/selinux.c |  92 ++++++++
  kernel/selinux/selinux.h |  12 ++
  kernel/sucompat.c        | 107 ++++++++--
- 13 files changed, 900 insertions(+), 33 deletions(-)
- create mode 120000 kernel/kernel
+ 12 files changed, 899 insertions(+), 33 deletions(-)
 
 diff --git a/kernel/Kconfig b/kernel/Kconfig
-index ab6dd5c9da18..b18cae934dd6 100644
+index ab6dd5c9..b18cae93 100644
 --- a/kernel/Kconfig
 +++ b/kernel/Kconfig
 @@ -40,4 +40,142 @@ config KSU_LSM_SECURITY_HOOKS
@@ -168,10 +166,10 @@ index ab6dd5c9da18..b18cae934dd6 100644
 +
  endmenu
 diff --git a/kernel/Makefile b/kernel/Makefile
-index 4498308b6dce..92d21d84d2d2 100644
+index ed643bc2..55d931f9 100644
 --- a/kernel/Makefile
 +++ b/kernel/Makefile
-@@ -136,4 +136,81 @@ endif
+@@ -135,4 +135,81 @@ endif
  ccflags-y += -Wno-implicit-function-declaration -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat
  ccflags-y += -Wno-declaration-after-statement -Wno-unused-function
  
@@ -254,7 +252,7 @@ index 4498308b6dce..92d21d84d2d2 100644
 +endif
  # Keep a new line here!! Because someone may append config
 diff --git a/kernel/allowlist.c b/kernel/allowlist.c
-index bcdac3f0ae1e..c59be97ca8dd 100644
+index bcdac3f0..c59be97c 100644
 --- a/kernel/allowlist.c
 +++ b/kernel/allowlist.c
 @@ -95,7 +95,7 @@ static uint8_t allow_list_bitmap[PAGE_SIZE] __read_mostly __aligned(PAGE_SIZE);
@@ -294,7 +292,7 @@ index bcdac3f0ae1e..c59be97ca8dd 100644
  	return ksu_queue_work(&ksu_save_work);
  }
 diff --git a/kernel/core_hook.c b/kernel/core_hook.c
-index 1744220b3bf7..3c89512646ae 100644
+index 2682b7df..22849093 100644
 --- a/kernel/core_hook.c
 +++ b/kernel/core_hook.c
 @@ -35,6 +35,10 @@
@@ -411,7 +409,7 @@ index 1744220b3bf7..3c89512646ae 100644
  extern void ksu_sucompat_init();
  extern void ksu_sucompat_exit();
  
-@@ -247,6 +341,14 @@ static bool is_system_bin_su(void)
+@@ -286,6 +380,14 @@ static bool is_system_bin_su(void)
  int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
  		     unsigned long arg4, unsigned long arg5)
  {
@@ -426,7 +424,7 @@ index 1744220b3bf7..3c89512646ae 100644
  	// if success, we modify the arg5 as result!
  	u32 *result = (u32 *)arg5;
  	u32 reply_ok = KERNEL_SU_OPTION;
-@@ -363,6 +465,9 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
+@@ -402,6 +504,9 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
  			if (!post_fs_data_lock) {
  				post_fs_data_lock = true;
  				pr_info("post-fs-data triggered\n");
@@ -436,7 +434,7 @@ index 1744220b3bf7..3c89512646ae 100644
  				on_post_fs_data();
  			}
  			break;
-@@ -372,6 +477,9 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
+@@ -411,6 +516,9 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
  			if (!boot_complete_lock) {
  				boot_complete_lock = true;
  				pr_info("boot_complete triggered\n");
@@ -446,7 +444,7 @@ index 1744220b3bf7..3c89512646ae 100644
  			}
  			break;
  		}
-@@ -478,6 +586,219 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
+@@ -517,6 +625,219 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
  	}
  #endif
  
@@ -666,7 +664,7 @@ index 1744220b3bf7..3c89512646ae 100644
  	// all other cmds are for 'root manager'
  	if (!from_manager) {
  		return 0;
-@@ -543,6 +864,12 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
+@@ -582,6 +903,12 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
  		}
  
  		if (enabled) {
@@ -679,7 +677,7 @@ index 1744220b3bf7..3c89512646ae 100644
  			ksu_sucompat_init();
  		} else {
  			ksu_sucompat_exit();
-@@ -583,11 +910,15 @@ static bool should_umount(struct path *path)
+@@ -622,11 +949,15 @@ static bool should_umount(struct path *path)
  		return false;
  	}
  
@@ -695,7 +693,7 @@ index 1744220b3bf7..3c89512646ae 100644
  }
  
  static int ksu_umount_mnt(struct path *path, int flags)
-@@ -600,7 +931,11 @@ static int ksu_umount_mnt(struct path *path, int flags)
+@@ -639,7 +970,11 @@ static int ksu_umount_mnt(struct path *path, int flags)
  #endif
  }
  
@@ -707,7 +705,7 @@ index 1744220b3bf7..3c89512646ae 100644
  {
  	struct path path;
  	int err = kern_path(mnt, 0, &path);
-@@ -620,12 +955,121 @@ static void try_umount(const char *mnt, bool check_mnt, int flags)
+@@ -659,12 +994,121 @@ static void try_umount(const char *mnt, bool check_mnt, int flags)
  		return;
  	}
  
@@ -829,7 +827,7 @@ index 1744220b3bf7..3c89512646ae 100644
  int ksu_handle_setuid(struct cred *new, const struct cred *old)
  {
  	// this hook is used for umounting overlayfs for some uid, if there isn't any module mounted, just ignore it!
-@@ -700,6 +1144,7 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
+@@ -739,6 +1183,7 @@ int ksu_handle_setuid(struct cred *new, const struct cred *old)
  
  	return 0;
  }
@@ -837,16 +835,8 @@ index 1744220b3bf7..3c89512646ae 100644
  
  // Init functons
  
-diff --git a/kernel/kernel b/kernel/kernel
-new file mode 120000
-index 000000000000..b32a3654a683
---- /dev/null
-+++ b/kernel/kernel
-@@ -0,0 +1 @@
-+../KernelSU-Next/kernel
-\ No newline at end of file
 diff --git a/kernel/kernel_compat.c b/kernel/kernel_compat.c
-index db47f8eb5efa..267d150c5947 100644
+index db47f8eb..267d150c 100644
 --- a/kernel/kernel_compat.c
 +++ b/kernel/kernel_compat.c
 @@ -76,6 +76,16 @@ void ksu_android_ns_fs_check()
@@ -883,7 +873,7 @@ index db47f8eb5efa..267d150c5947 100644
  				   long count)
  {
 diff --git a/kernel/kernel_compat.h b/kernel/kernel_compat.h
-index 421c384c387c..e7f8dfed858b 100644
+index 421c384c..e7f8dfed 100644
 --- a/kernel/kernel_compat.h
 +++ b/kernel/kernel_compat.h
 @@ -56,6 +56,7 @@ extern struct key *init_session_keyring;
@@ -895,7 +885,7 @@ index 421c384c387c..e7f8dfed858b 100644
  					 umode_t mode);
  extern ssize_t ksu_kernel_read_compat(struct file *p, void *buf, size_t count,
 diff --git a/kernel/ksu.c b/kernel/ksu.c
-index 0b24f1cc1626..39457984ccf3 100644
+index 11864141..f4410b10 100644
 --- a/kernel/ksu.c
 +++ b/kernel/ksu.c
 @@ -11,6 +11,10 @@
@@ -941,10 +931,10 @@ index 0b24f1cc1626..39457984ccf3 100644
  #else
  	pr_alert("KPROBES is disabled, KernelSU may not work, please check https://kernelsu.org/guide/how-to-integrate-for-non-gki.html");
 diff --git a/kernel/ksud.c b/kernel/ksud.c
-index 8b4739d6aa72..4f6a6c6bfa8a 100644
+index d56b9fb4..5d05fafd 100644
 --- a/kernel/ksud.c
 +++ b/kernel/ksud.c
-@@ -65,6 +65,10 @@ bool ksu_execveat_hook __read_mostly = true;
+@@ -64,6 +64,10 @@ bool ksu_execveat_hook __read_mostly = true;
  bool ksu_input_hook __read_mostly = true;
  #endif
  
@@ -955,7 +945,7 @@ index 8b4739d6aa72..4f6a6c6bfa8a 100644
  u32 ksu_devpts_sid;
  
  #ifdef CONFIG_COMPAT
-@@ -680,6 +684,10 @@ static void stop_execve_hook()
+@@ -678,6 +682,10 @@ static void stop_execve_hook()
  	ksu_execveat_hook = false;
  	pr_info("stop execve_hook\n");
  #endif
@@ -967,7 +957,7 @@ index 8b4739d6aa72..4f6a6c6bfa8a 100644
  
  static void stop_input_hook()
 diff --git a/kernel/selinux/rules.c b/kernel/selinux/rules.c
-index c85993c5c134..d5dee0790810 100644
+index c85993c5..d5dee079 100644
 --- a/kernel/selinux/rules.c
 +++ b/kernel/selinux/rules.c
 @@ -139,6 +139,15 @@ void apply_kernelsu_rules()
@@ -987,7 +977,7 @@ index c85993c5c134..d5dee0790810 100644
  }
  
 diff --git a/kernel/selinux/selinux.c b/kernel/selinux/selinux.c
-index 4ba20b0435c2..1726aa6164a1 100644
+index 4ba20b04..1726aa61 100644
 --- a/kernel/selinux/selinux.c
 +++ b/kernel/selinux/selinux.c
 @@ -8,6 +8,16 @@
@@ -1097,7 +1087,7 @@ index 4ba20b0435c2..1726aa6164a1 100644
  
  u32 ksu_get_devpts_sid()
 diff --git a/kernel/selinux/selinux.h b/kernel/selinux/selinux.h
-index 07120c253268..91894c8c8183 100644
+index 07120c25..91894c8c 100644
 --- a/kernel/selinux/selinux.h
 +++ b/kernel/selinux/selinux.h
 @@ -20,6 +20,18 @@ bool is_zygote(void *cred);
@@ -1120,7 +1110,7 @@ index 07120c253268..91894c8c8183 100644
  
  #endif
 diff --git a/kernel/sucompat.c b/kernel/sucompat.c
-index d99241183cf8..2e4b5c29e139 100644
+index d9924118..2e4b5c29 100644
 --- a/kernel/sucompat.c
 +++ b/kernel/sucompat.c
 @@ -13,6 +13,9 @@
