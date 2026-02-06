@@ -202,7 +202,7 @@ enum xm_property_id {
 	XM_PROP_REAL_TYPE,
 	/*used for pd authentic*/
 #if defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR) || defined(CONFIG_TARGET_PRODUCT_VERMEER)
-	XM_PROP_VERIFY_PROCESS = 11,
+	XM_PROP_VERIFY_PROCESS = 12,
 #else
 	XM_PROP_VERIFY_PROCESS,
 #endif
@@ -240,7 +240,7 @@ enum xm_property_id {
 	XM_PROP_FASTCHGMODE,
 	XM_PROP_NIGHT_CHARGING,
 #if defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR) || defined(CONFIG_TARGET_PRODUCT_VERMEER)
-	XM_PROP_SOC_DECIMAL = 46,
+	XM_PROP_SOC_DECIMAL = 47,
 #else
 	XM_PROP_SOC_DECIMAL,
 #endif
@@ -252,9 +252,9 @@ enum xm_property_id {
 	XM_PROP_SLAVE_DIE_TEMPERATURE,
 	XM_PROP_FG_RAW_SOC,
 	/* wireless charge infor */
-	XM_PROP_WLS_START = 50,
+	XM_PROP_WLS_START,
 #if defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR) || defined(CONFIG_TARGET_PRODUCT_VERMEER)
-	XM_PROP_TX_MACL = 55,
+	XM_PROP_TX_MACL = 56,
 #else
 	XM_PROP_TX_MACL,
 #endif
@@ -297,7 +297,7 @@ enum xm_property_id {
 	XM_PROP_WLS_END = 90,
 	/**********************/
 #if defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR) || defined(CONFIG_TARGET_PRODUCT_VERMEER)
-	XM_PROP_SHUTDOWN_DELAY = 93,
+	XM_PROP_SHUTDOWN_DELAY = 94,
 #else
 	XM_PROP_SHUTDOWN_DELAY,
 #endif
@@ -346,7 +346,7 @@ enum xm_property_id {
 	/*********nvt fuelgauge feature*********/
 	/*fuelgauge test node*/
 #if defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR) || defined(CONFIG_TARGET_PRODUCT_VERMEER)
-	XM_PROP_FG1_QMAX = 136,
+	XM_PROP_FG1_QMAX = 137,
 #else
 	XM_PROP_FG1_QMAX,
 #endif
@@ -374,6 +374,8 @@ enum xm_property_id {
 	XM_PROP_FG1_SEAL_STATE,
 	XM_PROP_FG1_DF_CHECK,
 	/*end dual fuel high temperature intercept feature*/
+	XM_PROP_DAM_OVPGATE = 218,
+	XM_PROP_LAST_NODE = 222,
 	/*dual fuel gauge - second node - M18*/
 	XM_PROP_SLAVE_CHIP_OK,
 	XM_PROP_SLAVE_AUTHENTIC,
@@ -431,12 +433,11 @@ enum xm_property_id {
 	XM_PROP_FG2_GET_DESIGN_CAPACITY,
 	/*dtpt fuelgauge feature-second fuelgauge node-M18*/
 #if defined(CONFIG_TARGET_PRODUCT_NUWA) || defined(CONFIG_TARGET_PRODUCT_FUXI) || defined(CONFIG_TARGET_PRODUCT_ISHTAR) || defined(CONFIG_TARGET_PRODUCT_VERMEER)
-	XM_PROP_FG_VENDOR_ID = 211,
+	XM_PROP_FG_VENDOR_ID = 216,
 #else
 	XM_PROP_FG_VENDOR_ID,
 #endif
 	XM_PROP_HAS_DP,
-	XM_PROP_DAM_OVPGATE,
 	XM_PROP_CHARGING_SUSPEND_BATTERY,
 #ifdef CONFIG_QTI_POGO_CHG
 	/*set sc8561 mode and mos*/
@@ -451,7 +452,6 @@ enum xm_property_id {
 	XM_PROP_KEYBOARD_PLUGIN,
 	XM_PROP_ALL_VOTER,
 #endif
-	XM_PROP_LAST_NODE,
 	XM_PROP_MAX,
 };
 enum fg_venodr{
